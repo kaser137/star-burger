@@ -1,5 +1,6 @@
 from django.db import models
 from django.core.validators import MinValueValidator
+from phonenumber_field.modelfields import PhoneNumberField
 
 
 class Restaurant(models.Model):
@@ -137,10 +138,9 @@ class Order(models.Model):
         max_length=100,
         blank=True,
     )
-    phone = models.CharField(
+    phone = PhoneNumberField(
         'телефон',
-        max_length=50,
-        blank=True,
+        region='RU'
     )
 
     class Meta:

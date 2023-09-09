@@ -1,6 +1,7 @@
+import phonenumbers
 from rest_framework import status
 from rest_framework.response import Response
-from django.http import JsonResponse
+from django.core.exceptions import ObjectDoesNotExist
 from django.templatetags.static import static
 from rest_framework.decorators import api_view
 
@@ -60,29 +61,84 @@ def register_order(request):
     data = request.data
     try:
         products = data['products']
-        if isinstance(products, list) and products:
-            first_name = data['firstname']
-            last_name = data['lastname']
-            phone = data['phonenumber']
-            address = data['address']
-            order = Order.objects.create(
-                first_name=first_name,
-                last_name=last_name,
-                phone=phone,
-                address=address,
-            )
-            for food in products:
-                product = Product.objects.get(id=food['product'])
-                quantity = food['quantity']
-                ProductInOrder.objects.create(
-                    order=order,
-                    product=product,
-                    quantity=quantity,
-                )
-            return Response(data)
     except KeyError:
-        pass
-    return Response(
-        {'error': 'products key is not presented, or is None, or not list'},
-        status=status.HTTP_400_BAD_REQUEST,
+        return Response(
+            {'error': 'products key is not presented'},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+    try:
+        first_name = data['firstname']
+    except KeyError:
+        return Response(
+            {'error': 'firstname key is not presented'},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+    try:
+        last_name = data['lastname']
+    except KeyError:
+        return Response(
+            {'error': 'lastname key is not presented'},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+    try:
+        phone = data['phonenumber']
+    except KeyError:
+        return Response(
+            {'error': 'phonenumber key is not presented'},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+    try:
+        address = data['address']
+    except KeyError:
+        return Response(
+            {'error': 'address key is not presented'},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+    phone = phonenumbers.parse(phone, 'RU')
+    if not isinstance(products, list) or not products:
+        return Response(
+            {'error': 'products key is not specified, or not list'},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+    if not isinstance(first_name, str) or not first_name:
+        return Response(
+            {'error': 'firstname key is not specified, or not str'},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+    if not isinstance(last_name, str) or not last_name:
+        return Response(
+            {'error': 'lastname key is not specified, or not str'},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+    if not phonenumbers.is_valid_number(phone):
+        return Response(
+            {'error': 'phonenumber key is not valid'},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+    if not isinstance(address, str) or not address:
+        return Response(
+            {'error': 'address key is not specified, or not str'},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+    order = Order.objects.create(
+        first_name=first_name,
+        last_name=last_name,
+        phone=phone,
+        address=address,
     )
+    for food in products:
+        try:
+            product = Product.objects.get(id=food['product'])
+        except ObjectDoesNotExist:
+            order.delete()
+            return Response(
+                {'error': f'product with id = {food["product"]} does not exist'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        quantity = food['quantity']
+        ProductInOrder.objects.create(
+            order=order,
+            product=product,
+            quantity=quantity,
+        )
+    return Response(data)
