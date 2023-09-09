@@ -1,3 +1,4 @@
+from rest_framework import status
 from rest_framework.response import Response
 from django.http import JsonResponse
 from django.templatetags.static import static
@@ -57,26 +58,31 @@ def product_list_api(request):
 @api_view(['POST'])
 def register_order(request):
     data = request.data
-    print(data)
-    first_name = data['firstname']
-    last_name = data['lastname']
-    phone = data['phonenumber']
-    address = data['address']
-    order = Order.objects.create(
-        first_name=first_name,
-        last_name=last_name,
-        phone=phone,
-        address=address,
+    try:
+        products = data['products']
+        if isinstance(products, list) and products:
+            first_name = data['firstname']
+            last_name = data['lastname']
+            phone = data['phonenumber']
+            address = data['address']
+            order = Order.objects.create(
+                first_name=first_name,
+                last_name=last_name,
+                phone=phone,
+                address=address,
+            )
+            for food in products:
+                product = Product.objects.get(id=food['product'])
+                quantity = food['quantity']
+                ProductInOrder.objects.create(
+                    order=order,
+                    product=product,
+                    quantity=quantity,
+                )
+            return Response(data)
+    except KeyError:
+        pass
+    return Response(
+        {'error': 'products key is not presented, or is None, or not list'},
+        status=status.HTTP_400_BAD_REQUEST,
     )
-    for food in data['products']:
-        product = Product.objects.get(id=food['product'])
-        quantity = food['quantity']
-        ProductInOrder.objects.create(
-            order=order,
-            product=product,
-            quantity=quantity,
-        )
-    return JsonResponse(data, safe=False, json_dumps_params={
-        'ensure_ascii': False,
-        'indent': 4,
-    })
