@@ -1,5 +1,6 @@
-import phonenumbers
-from rest_framework import status
+from rest_framework import serializers
+from rest_framework.serializers import ValidationError
+from rest_framework.serializers import ModelSerializer
 from rest_framework.response import Response
 from django.core.exceptions import ObjectDoesNotExist
 from django.templatetags.static import static
@@ -59,82 +60,25 @@ def product_list_api(request):
 @api_view(['POST'])
 def register_order(request):
     data = request.data
-    try:
-        products = data['products']
-    except KeyError:
-        return Response(
-            {'error': 'products key is not presented'},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
-    try:
-        first_name = data['firstname']
-    except KeyError:
-        return Response(
-            {'error': 'firstname key is not presented'},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
-    try:
-        last_name = data['lastname']
-    except KeyError:
-        return Response(
-            {'error': 'lastname key is not presented'},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
-    try:
-        phone = data['phonenumber']
-    except KeyError:
-        return Response(
-            {'error': 'phonenumber key is not presented'},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
-    try:
-        address = data['address']
-    except KeyError:
-        return Response(
-            {'error': 'address key is not presented'},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
-    phone = phonenumbers.parse(phone, 'RU')
-    if not isinstance(products, list) or not products:
-        return Response(
-            {'error': 'products key is not specified, or not list'},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
-    if not isinstance(first_name, str) or not first_name:
-        return Response(
-            {'error': 'firstname key is not specified, or not str'},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
-    if not isinstance(last_name, str) or not last_name:
-        return Response(
-            {'error': 'lastname key is not specified, or not str'},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
-    if not phonenumbers.is_valid_number(phone):
-        return Response(
-            {'error': 'phonenumber key is not valid'},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
-    if not isinstance(address, str) or not address:
-        return Response(
-            {'error': 'address key is not specified, or not str'},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
+    serializer = OrderSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    products = data['products']
+    firstname = data['firstname']
+    lastname = data['lastname']
+    phonenumber = data['phonenumber']
+    address = data['address']
     order = Order.objects.create(
-        first_name=first_name,
-        last_name=last_name,
-        phone=phone,
+        firstname=firstname,
+        lastname=lastname,
+        phonenumber=phonenumber,
         address=address,
     )
     for food in products:
-        try:
-            product = Product.objects.get(id=food['product'])
-        except ObjectDoesNotExist:
-            order.delete()
-            return Response(
-                {'error': f'product with id = {food["product"]} does not exist'},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+        serializer = ProductSerializer(data=food)
+        serializer.is_valid(raise_exception=True)
+        serializer = ProductInOrderSerializer(data=food)
+        serializer.is_valid(raise_exception=True)
+        product = Product.objects.get(id=food['product'])
         quantity = food['quantity']
         ProductInOrder.objects.create(
             order=order,
@@ -142,3 +86,33 @@ def register_order(request):
             quantity=quantity,
         )
     return Response(data)
+
+
+class ProductInOrderSerializer(ModelSerializer):
+    class Meta:
+        model = ProductInOrder
+        fields = ['quantity']
+
+
+class ProductSerializer(ModelSerializer):
+    product = serializers.IntegerField(source='id')
+
+    @staticmethod
+    def validate_product(value):
+        try:
+            Product.objects.get(id=value)
+        except ObjectDoesNotExist:
+            raise ValidationError(f'Недопустимый первичный ключ: {value}')
+        return value
+
+    class Meta:
+        model = Product
+        fields = ['product']
+
+
+class OrderSerializer(ModelSerializer):
+    products = ProductSerializer(many=True, allow_empty=False)
+
+    class Meta:
+        model = Order
+        fields = ['firstname', 'lastname', 'address', 'phonenumber', 'products']
