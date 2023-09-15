@@ -42,8 +42,9 @@ class ProductInOrderQuerySet(models.QuerySet):
     @staticmethod
     def amount(pk):
         amount = ProductInOrder.objects.filter(
-            order_id=pk).annotate(amount=F('product__price') * F('quantity')).aggregate(Sum('amount'))
-        return amount['amount__sum']
+            order_id=pk).aggregate(amount=Sum(F('product__price') * F('quantity')))
+        print(amount)
+        return amount['amount']
 
 
 class ProductCategory(models.Model):
