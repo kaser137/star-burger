@@ -110,19 +110,6 @@ class ProductAdmin(admin.ModelAdmin):
     pass
 
 
-# @admin.register(ProductInOrder)
-# class ProductInOrderAdmin(admin.ModelAdmin):
-#
-#     # def price(self, obj):
-#     #     return obj.product.price
-#
-#     list_display = [
-#         'name',
-#         'price',
-#         'quantity'
-#     ]
-
-
 @admin.register(ProductInOrder)
 class ProductInOrderAdmin(admin.ModelAdmin):
     pass
