@@ -1,5 +1,3 @@
-from django.contrib.contenttypes.fields import GenericForeignKey
-from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.core.validators import MinValueValidator
 from phonenumber_field.modelfields import PhoneNumberField
@@ -40,10 +38,10 @@ class ProductQuerySet(models.QuerySet):
         return self.filter(pk__in=products)
 
 
-class QuantityQuerySet(models.QuerySet):
+class ProductInOrderQuerySet(models.QuerySet):
     @staticmethod
     def amount(pk):
-        amount = Quantity.objects.filter(
+        amount = ProductInOrder.objects.filter(
             order_id=pk).aggregate(amount=Sum(F('product__price') * F('quantity')))
         print(amount)
         return amount['amount']
@@ -153,15 +151,9 @@ class Order(models.Model):
         'телефон',
         region='RU',
     )
-    # amount = models.DecimalField(
-    #     'стоимость',
-    #     max_digits=8,
-    #     decimal_places=2,
-    #     validators=[MinValueValidator(0)]
-    # )
 
     def amount(self):
-        quants = Quantity.objects.filter(order=self.id)
+        quants = ProductInOrder.objects.filter(order=self.id)
         amount = 0
         for q in quants:
             amount += q.price * q.quantity
@@ -172,12 +164,11 @@ class Order(models.Model):
         verbose_name = 'заказ'
         verbose_name_plural = 'заказы'
 
-
     def __str__(self):
         return f'{self.firstname} {self.address}'
 
 
-class Quantity(models.Model):
+class ProductInOrder(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     quantity = models.PositiveSmallIntegerField(
@@ -191,7 +182,7 @@ class Quantity(models.Model):
         validators=[MinValueValidator(0)]
     )
 
-    objects = QuantityQuerySet.as_manager()
+    objects = ProductInOrderQuerySet.as_manager()
 
     class Meta:
         verbose_name = 'товар и его количество в заказе'
@@ -199,10 +190,6 @@ class Quantity(models.Model):
 
     def __str__(self):
         return f'{self.product} {self.quantity}'
-
-
-
-
 
 # class ProductInOrder(models.Model):
 #     product = models.ForeignKey(
