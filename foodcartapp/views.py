@@ -5,8 +5,9 @@ from rest_framework.response import Response
 from django.core.exceptions import ObjectDoesNotExist
 from django.templatetags.static import static
 from rest_framework.decorators import api_view
+from django.db import IntegrityError, transaction
 
-from .models import Product, Order, ProductInOrder
+from .models import Product, Order, Quantity
 
 
 @api_view(['GET'])
@@ -57,6 +58,7 @@ def product_list_api(request):
     return Response(dumped_products)
 
 
+@transaction.atomic
 @api_view(['POST'])
 def register_order(request):
     data = request.data
@@ -67,31 +69,57 @@ def register_order(request):
     lastname = data['lastname']
     phonenumber = data['phonenumber']
     address = data['address']
+    # order = Order.objects.create(
+    #     firstname=firstname,
+    #     lastname=lastname,
+    #     phonenumber=phonenumber,
+    #     address=address,
+    # )
+    amount = 0
+    for food in products:
+        serializer = ProductSerializer(data=food)
+        serializer.is_valid(raise_exception=True)
+        serializer = QuantitySerializer(data=food)
+        serializer.is_valid(raise_exception=True)
+        product = Product.objects.get(id=food['product'])
+        quantity = food['quantity']
+        # amount += product.price*quantity
     order = Order.objects.create(
         firstname=firstname,
         lastname=lastname,
         phonenumber=phonenumber,
         address=address,
+        # amount=amount
     )
+    print(amount)
     for food in products:
-        serializer = ProductSerializer(data=food)
-        serializer.is_valid(raise_exception=True)
-        serializer = ProductInOrderSerializer(data=food)
-        serializer.is_valid(raise_exception=True)
+        # serializer = ProductSerializer(data=food)
+        # serializer.is_valid(raise_exception=True)
+        # serializer = ProductInOrderSerializer(data=food)
+        # serializer.is_valid(raise_exception=True)
         product = Product.objects.get(id=food['product'])
         quantity = food['quantity']
-        ProductInOrder.objects.create(
+        price = product.price
+        Quantity.objects.create(
             order=order,
             product=product,
             quantity=quantity,
+            price=price,
         )
-        serializer = OrderSerializer(order)
+    serializer = OrderSerializer(order)
+    # k = 5/0
     return Response(serializer.data)
 
 
-class ProductInOrderSerializer(ModelSerializer):
+# class ProductInOrderSerializer(ModelSerializer):
+#     class Meta:
+#         model = ProductInOrder
+#         fields = ['quantity']
+#
+
+class QuantitySerializer(ModelSerializer):
     class Meta:
-        model = ProductInOrder
+        model = Quantity
         fields = ['quantity']
 
 

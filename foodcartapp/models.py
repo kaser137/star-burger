@@ -1,3 +1,5 @@
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.core.validators import MinValueValidator
 from phonenumber_field.modelfields import PhoneNumberField
@@ -38,10 +40,10 @@ class ProductQuerySet(models.QuerySet):
         return self.filter(pk__in=products)
 
 
-class ProductInOrderQuerySet(models.QuerySet):
+class QuantityQuerySet(models.QuerySet):
     @staticmethod
     def amount(pk):
-        amount = ProductInOrder.objects.filter(
+        amount = Quantity.objects.filter(
             order_id=pk).aggregate(amount=Sum(F('product__price') * F('quantity')))
         print(amount)
         return amount['amount']
@@ -151,38 +153,45 @@ class Order(models.Model):
         'телефон',
         region='RU',
     )
+    # amount = models.DecimalField(
+    #     'стоимость',
+    #     max_digits=8,
+    #     decimal_places=2,
+    #     validators=[MinValueValidator(0)]
+    # )
 
     def amount(self):
-        return ProductInOrder.objects.amount(self.id)
+        quants = Quantity.objects.filter(order=self.id)
+        amount = 0
+        for q in quants:
+            amount += q.price * q.quantity
+
+        return amount
 
     class Meta:
         verbose_name = 'заказ'
         verbose_name_plural = 'заказы'
 
+
     def __str__(self):
         return f'{self.firstname} {self.address}'
 
 
-class ProductInOrder(models.Model):
-    product = models.ForeignKey(
-        Product,
-        verbose_name='товар',
-        on_delete=models.CASCADE,
-        db_index=True,
-    )
+class Quantity(models.Model):
+    order = models.ForeignKey(Order, on_delete=models.CASCADE)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
     quantity = models.PositiveSmallIntegerField(
         verbose_name='количество',
         validators=[MinValueValidator(1, message='too small number')]
     )
-    order = models.ForeignKey(
-        Order,
-        verbose_name='заказ',
-        related_name='products',
-        on_delete=models.CASCADE,
-        db_index=True,
+    price = models.DecimalField(
+        'цена',
+        max_digits=8,
+        decimal_places=2,
+        validators=[MinValueValidator(0)]
     )
 
-    objects = ProductInOrderQuerySet.as_manager()
+    objects = QuantityQuerySet.as_manager()
 
     class Meta:
         verbose_name = 'товар и его количество в заказе'
@@ -190,3 +199,37 @@ class ProductInOrder(models.Model):
 
     def __str__(self):
         return f'{self.product} {self.quantity}'
+
+
+
+
+
+# class ProductInOrder(models.Model):
+#     product = models.ForeignKey(
+#         Product,
+#         verbose_name='товар',
+#         on_delete=models.CASCADE,
+#         related_name='prod_in_ors',
+#         db_index=True,
+#     )
+#     quantity = models.PositiveSmallIntegerField(
+#         verbose_name='количество',
+#         validators=[MinValueValidator(1, message='too small number')]
+#     )
+#
+#     order = models.ForeignKey(
+#         Order,
+#         verbose_name='заказ',
+#         related_name='products',
+#         on_delete=models.CASCADE,
+#         db_index=True,
+#     )
+#
+#     objects = ProductInOrderQuerySet.as_manager()
+#
+#     class Meta:
+#         verbose_name = 'товар и его количество в заказе'
+#         verbose_name_plural = 'товары и их количество в заказе'
+#
+#     def __str__(self):
+#         return f'{self.product} {self.quantity}'
