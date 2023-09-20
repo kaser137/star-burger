@@ -94,6 +94,7 @@ def view_restaurants(request):
 def view_orders(request):
     order_items = Order.objects.all()
     context = {
-        'order_items': order_items
+        'order_items': order_items,
     }
+
     return render(request, template_name='order_items.html', context=context)
