@@ -135,6 +135,13 @@ class RestaurantMenuItem(models.Model):
 
 
 class Order(models.Model):
+    STATUS = (
+        ('0', 'Необработанный'),
+        ('1', 'Принят'),
+        ('2', 'Готовится'),
+        ('3', 'Доставляется'),
+        ('4', 'Исполнен'),
+    )
     firstname = models.CharField(
         'Имя',
         max_length=50
@@ -151,12 +158,13 @@ class Order(models.Model):
         'телефон',
         region='RU',
     )
+    status = models.CharField('статус', max_length=2, choices=STATUS, default=0, db_index=True)
 
     def amount(self):
-        quants = ProductInOrder.objects.filter(order=self.id)
+        products = ProductInOrder.objects.filter(order=self.id)
         amount = 0
-        for q in quants:
-            amount += q.price * q.quantity
+        for product in products:
+            amount += product.price * product.quantity
 
         return amount
 
@@ -190,33 +198,3 @@ class ProductInOrder(models.Model):
 
     def __str__(self):
         return f'{self.product} {self.quantity}'
-
-# class ProductInOrder(models.Model):
-#     product = models.ForeignKey(
-#         Product,
-#         verbose_name='товар',
-#         on_delete=models.CASCADE,
-#         related_name='prod_in_ors',
-#         db_index=True,
-#     )
-#     quantity = models.PositiveSmallIntegerField(
-#         verbose_name='количество',
-#         validators=[MinValueValidator(1, message='too small number')]
-#     )
-#
-#     order = models.ForeignKey(
-#         Order,
-#         verbose_name='заказ',
-#         related_name='products',
-#         on_delete=models.CASCADE,
-#         db_index=True,
-#     )
-#
-#     objects = ProductInOrderQuerySet.as_manager()
-#
-#     class Meta:
-#         verbose_name = 'товар и его количество в заказе'
-#         verbose_name_plural = 'товары и их количество в заказе'
-#
-#     def __str__(self):
-#         return f'{self.product} {self.quantity}'
