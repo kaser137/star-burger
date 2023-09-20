@@ -142,6 +142,13 @@ class Order(models.Model):
         ('3', 'Доставляется'),
         ('4', 'Исполнен'),
     )
+    status = models.CharField(
+        'статус',
+        max_length=2,
+        choices=STATUS,
+        default=0,
+        db_index=True
+    )
     firstname = models.CharField(
         'Имя',
         max_length=50
@@ -158,7 +165,11 @@ class Order(models.Model):
         'телефон',
         region='RU',
     )
-    status = models.CharField('статус', max_length=2, choices=STATUS, default=0, db_index=True)
+    comment = models.TextField(
+        'комментарий',
+        blank=True,
+        null=True
+    )
 
     def amount(self):
         products = ProductInOrder.objects.filter(order=self.id)
