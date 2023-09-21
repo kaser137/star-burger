@@ -1,5 +1,4 @@
 from django.contrib import admin
-from django.http import HttpResponse, HttpResponsePermanentRedirect
 from django.shortcuts import reverse, redirect
 from django.templatetags.static import static
 from django.utils.html import format_html
@@ -116,10 +115,6 @@ class ProductInOrderAdmin(admin.ModelAdmin):
     pass
 
 
-class ProductInline(admin.TabularInline):
-    model = Product
-
-
 class ProductInOrderInline(admin.TabularInline):
     model = ProductInOrder
     extra = 0
@@ -144,5 +139,5 @@ class OrderAdmin(admin.ModelAdmin):
 
     def response_change(self, request, obj):
         if request.GET.get('fromsite'):
-            return HttpResponsePermanentRedirect('/manager/orders')
-        return HttpResponsePermanentRedirect('/admin/foodcartapp/order/')
+            return redirect('restaurateur:view_orders')
+        return redirect('admin:foodcartapp_order_changelist')
