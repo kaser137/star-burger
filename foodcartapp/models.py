@@ -221,6 +221,7 @@ class Order(models.Model):
     class Meta:
         verbose_name = 'заказ'
         verbose_name_plural = 'заказы'
+        ordering = ['status']
 
     def __str__(self):
         return f'{self.firstname} {self.address}'
@@ -267,4 +268,7 @@ class ProductInOrder(models.Model):
 def change_status(sender, instance, **kwargs):
     if instance.restaurant and (kwargs['update_fields'] == frozenset({'restaurant'})):
         instance.status = 2
+        instance.save()
+    if not instance.restaurant and (kwargs['update_fields'] == frozenset({'restaurant'})):
+        instance.status = 1
         instance.save()
