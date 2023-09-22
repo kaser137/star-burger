@@ -174,6 +174,14 @@ class Order(models.Model):
         'адрес',
         max_length=100,
     )
+    restaurant = models.ForeignKey(
+        Restaurant,
+        verbose_name='ресторан',
+        on_delete=models.CASCADE,
+        related_name='orders',
+        null=True,
+        blank=True
+    )
     phonenumber = PhoneNumberField(
         'телефон',
         region='RU',
@@ -205,6 +213,7 @@ class Order(models.Model):
             amount += product.price * product.quantity
 
         return amount
+    amount.short_description = 'Сумма заказа'
 
     class Meta:
         verbose_name = 'заказ'
@@ -215,11 +224,24 @@ class Order(models.Model):
 
 
 class ProductInOrder(models.Model):
-    order = models.ForeignKey(Order, on_delete=models.CASCADE)
-    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    order = models.ForeignKey(
+        Order,
+        on_delete=models.CASCADE,
+        related_name='products_in_orders',
+    )
+    product = models.ForeignKey(
+        Product,
+        on_delete=models.CASCADE,
+        related_name='products_in_orders'
+    )
     quantity = models.PositiveSmallIntegerField(
         verbose_name='количество',
-        validators=[MinValueValidator(1, message='too small number')]
+        validators=[
+            MinValueValidator(
+                1,
+                message='too small number'
+            ),
+        ],
     )
     price = models.DecimalField(
         'цена',

@@ -1,11 +1,11 @@
 {% extends 'base_restaurateur_page.html' %}
 
-{% block title %}Необработанные заказы | Star Burger{% endblock %}
+{% block title %}Незавершенные заказы | Star Burger{% endblock %}
 
 {% block content %}
 {% load admin_urls %}
   <center>
-    <h2>Необработанные заказы</h2>
+    <h2>Незавершенные заказы</h2>
   </center>
 
   <hr/>
@@ -22,6 +22,7 @@
       <th>Телефон</th>
       <th>Адрес доставки</th>
       <th>Комментарий</th>
+      <th>Рестораны</th>
       <th>Ссылка на админку</th>
     </tr>
 
@@ -35,7 +36,23 @@
         <td>{{item.phonenumber}}</td>
         <td>{{item.address}}</td>
         <td>{{item.comment}}</td>
-        <td><a href="/admin/foodcartapp/order/{{item.id}}/change/?fromsite=1">Редактировать </a></td>
+        {% if item.restaurant %}
+          <td style="text-align: center">Готовим в ресторане: {{item.restaurant}}</td>
+        {% else %}
+          {% if item.restaurants %}
+          <td>
+            <details>
+            <summary style="font-weight: bold; text-align: center">Может быть приготовлен ресторанами (кликабельно):</summary>
+            {% for restaurant in item.restaurants %}
+                <li style="text-align: center">{{restaurant}}</li>
+            {% endfor %}
+          </details>
+          </td>
+          {% else %}
+            <td style="text-align: center">Подходящие рестораны отсутствуют</td>
+          {% endif %}
+        {% endif %}
+        <td><a href="{% url 'admin:foodcartapp_order_change' item.id%}?{{current_url}}">Редактировать </a></td>
       </tr>
     {% endfor %}
    </table>

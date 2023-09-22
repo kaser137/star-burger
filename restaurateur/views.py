@@ -1,14 +1,14 @@
 from django import forms
 from django.shortcuts import redirect, render
+from django.utils.http import urlencode
 from django.views import View
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy, reverse
 from django.contrib.auth.decorators import user_passes_test
-
+from star_burger.functions import available_list
 from django.contrib.auth import authenticate, login
 from django.contrib.auth import views as auth_views
 
-
-from foodcartapp.models import Product, Restaurant, Order
+from foodcartapp.models import Product, Restaurant, Order, RestaurantMenuItem
 
 
 class Login(forms.Form):
@@ -93,8 +93,14 @@ def view_restaurants(request):
 @user_passes_test(is_manager, login_url='restaurateur:login')
 def view_orders(request):
     order_items = Order.objects.exclude(status='4')
+    for order in order_items:
+        restaurants_id = available_list(order.id)
+        restaurants = Restaurant.objects.filter(id__in=restaurants_id)
+        order.restaurants = restaurants
+
     context = {
         'order_items': order_items,
+        'current_url': urlencode({'next': request.path}),
     }
 
     return render(request, template_name='order_items.html', context=context)
