@@ -12,36 +12,6 @@ from .models import Restaurant
 from .models import RestaurantMenuItem, Order, ProductInOrder
 
 
-#
-# def url_has_allowed_host_and_scheme(url, allowed_hosts, require_https=False):
-#     """
-#     Return ``True`` if the url uses an allowed host and a safe scheme.
-#
-#     Always return ``False`` on an empty url.
-#
-#     If ``require_https`` is ``True``, only 'https' will be considered a valid
-#     scheme, as opposed to 'http' and 'https' with the default, ``False``.
-#
-#     Note: "True" doesn't entail that a URL is "safe". It may still be e.g.
-#     quoted incorrectly. Ensure to also use django.utils.encoding.iri_to_uri()
-#     on the path component of untrusted URLs.
-#     """
-#     if url is not None:
-#         url = url.strip()
-#     if not url:
-#         return False
-#     if allowed_hosts is None:
-#         allowed_hosts = set()
-#     elif isinstance(allowed_hosts, str):
-#         allowed_hosts = {allowed_hosts}
-#     # Chrome treats \ completely as / in paths but it could be part of some
-#     # basic auth credentials so we need to check both URLs.
-#     return (
-#         _url_has_allowed_host_and_scheme(url, allowed_hosts, require_https=require_https) and
-#         _url_has_allowed_host_and_scheme(url.replace('\\', '/'), allowed_hosts, require_https=require_https)
-#     )
-
-
 class RestaurantMenuItemInline(admin.TabularInline):
     model = RestaurantMenuItem
     extra = 0
@@ -170,25 +140,6 @@ class OrderAdmin(admin.ModelAdmin):
         ProductInOrderInline,
     ]
 
-    # def available_list(self, order_id):
-    #     order = Order.objects.get(id=order_id)
-    #     print(order)
-    #
-    #     products = [i.product for i in order.products_in_orders.all()]
-    #     restaurants = []
-    #     flag = 0
-    #     print(products)
-    #     for product in products:
-    #         restaurants_for_product = RestaurantMenuItem.objects.filter(product=product).filter(availability=True).values_list(
-    #             'restaurant__id', flat=True).distinct()
-    #         if not flag:
-    #             restaurants = restaurants_for_product
-    #             print(product, '=============', restaurants_for_product)
-    #             flag = 1
-    #             continue
-    #     restaurants = restaurants_for_product.intersection(restaurants)
-    #     return list(restaurants)
-
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         order_id = request.path.split('/')[-3]
         u = available_list(int(order_id))
@@ -202,19 +153,8 @@ class OrderAdmin(admin.ModelAdmin):
             return redirect(request_url)
         return parent_redirect
 
-
-# def available_list(order_id):
-#     order = Order.objects.get(id=order_id)
-#     products = [i.product for i in order.products_in_orders.all()]
-#     restaurants = []
-#     flag = 0
-#     for product in products:
-#         restaurants_for_product = RestaurantMenuItem.objects.filter(product=product).filter(
-#             availability=True).values_list(
-#             'restaurant__id', flat=True).distinct()
-#         if not flag:
-#             restaurants = restaurants_for_product
-#             flag = 1
-#             continue
-#     restaurants = restaurants_for_product.intersection(restaurants)
-#     return list(restaurants)
+    def save_model(self, request, obj, form, change):
+        if change:
+            obj.save(update_fields=form.changed_data)
+        else:
+            super().save_model(request, obj, form, change)

@@ -1,5 +1,7 @@
 from django.db import models
 from django.core.validators import MinValueValidator
+from django.db.models.signals import post_save, pre_save
+from django.dispatch import receiver
 from django.utils import timezone
 from phonenumber_field.modelfields import PhoneNumberField
 from django.db.models import F, Sum
@@ -213,6 +215,7 @@ class Order(models.Model):
             amount += product.price * product.quantity
 
         return amount
+
     amount.short_description = 'Сумма заказа'
 
     class Meta:
@@ -258,3 +261,10 @@ class ProductInOrder(models.Model):
 
     def __str__(self):
         return f'{self.product} {self.quantity}'
+
+
+@receiver(pre_save, sender=Order)
+def change_status(sender, instance, **kwargs):
+    if instance.restaurant and (kwargs['update_fields'] == frozenset({'restaurant'})):
+        instance.status = 2
+        instance.save()
