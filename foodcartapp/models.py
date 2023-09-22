@@ -264,11 +264,12 @@ class ProductInOrder(models.Model):
         return f'{self.product} {self.quantity}'
 
 
-@receiver(pre_save, sender=Order)
+@receiver(post_save, sender=Order)
 def change_status(sender, instance, **kwargs):
+    print(kwargs)
+    if kwargs['update_fields']:
+        instance.status = 1
+        instance.save()
     if instance.restaurant and (kwargs['update_fields'] == frozenset({'restaurant'})):
         instance.status = 2
-        instance.save()
-    if not instance.restaurant and (kwargs['update_fields'] == frozenset({'restaurant'})):
-        instance.status = 1
         instance.save()
