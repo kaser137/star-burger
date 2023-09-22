@@ -1,14 +1,16 @@
+import requests
+from geopy import distance
+from star_burger.functions import available_list, fetch_coordinates
 from django import forms
 from django.shortcuts import redirect, render
 from django.utils.http import urlencode
 from django.views import View
-from django.urls import reverse_lazy, reverse
+from django.urls import reverse_lazy
 from django.contrib.auth.decorators import user_passes_test
-from star_burger.functions import available_list
 from django.contrib.auth import authenticate, login
 from django.contrib.auth import views as auth_views
 
-from foodcartapp.models import Product, Restaurant, Order, RestaurantMenuItem
+from foodcartapp.models import Product, Restaurant, Order
 
 
 class Login(forms.Form):
@@ -94,9 +96,21 @@ def view_restaurants(request):
 def view_orders(request):
     order_items = Order.objects.exclude(status='4')
     for order in order_items:
-        restaurants_id = available_list(order.id)
-        restaurants = Restaurant.objects.filter(id__in=restaurants_id)
-        order.restaurants = restaurants
+        if not order.restaurant:
+            restaurants_id = available_list(order.id)
+            restaurants = Restaurant.objects.filter(id__in=restaurants_id)
+            restaurants_with_distance = []
+            for restaurant in restaurants:
+                try:
+                    client_coordinates = fetch_coordinates(address=order.address)
+                    restaurant_coordinates = fetch_coordinates(address=restaurant.address)
+                    interval = round(distance.distance(client_coordinates, restaurant_coordinates).km, 2)
+                    restaurants_with_distance.append(f'{restaurant} - {interval}km')
+                    restaurants_with_distance.sort(key=sort_by_distance)
+                except requests.exceptions:
+                    interval = 'расстояние неизвестно'
+                    restaurants_with_distance.append(f'{restaurant} - {interval}km')
+            order.restaurants = restaurants_with_distance
 
     context = {
         'order_items': order_items,
@@ -104,3 +118,7 @@ def view_orders(request):
     }
 
     return render(request, template_name='order_items.html', context=context)
+
+
+def sort_by_distance(input_str):
+    return input_str.split(' - ')[-1]

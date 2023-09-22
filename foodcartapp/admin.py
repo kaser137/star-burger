@@ -141,9 +141,9 @@ class OrderAdmin(admin.ModelAdmin):
     ]
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
-        order_id = request.path.split('/')[-3]
-        u = available_list(int(order_id))
-        kwargs['queryset'] = Restaurant.objects.filter(id__in=u)
+        if db_field.name == 'restaurant':
+            order_id = request.path.split('/')[-3]
+            kwargs['queryset'] = Restaurant.objects.filter(id__in=available_list(order_id))
         return super(OrderAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
 
     def response_change(self, request, obj):
