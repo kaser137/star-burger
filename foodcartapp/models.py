@@ -1,10 +1,13 @@
+import requests
 from django.db import models
 from django.core.validators import MinValueValidator
-from django.db.models.signals import post_save, pre_save
+from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils import timezone
+from geopy import distance
 from phonenumber_field.modelfields import PhoneNumberField
 from django.db.models import F, Sum
+from star_burger import settings
 
 
 class Restaurant(models.Model):
@@ -264,12 +267,76 @@ class ProductInOrder(models.Model):
         return f'{self.product} {self.quantity}'
 
 
+class Distance(models.Model):
+    order = models.ForeignKey(
+        Order,
+        verbose_name='заказ',
+        on_delete=models.CASCADE,
+        related_name='distances'
+    )
+    restaurant = models.ForeignKey(
+        Restaurant,
+        verbose_name='заказ',
+        on_delete=models.CASCADE,
+        related_name='distances'
+    )
+    interval = models.FloatField(
+        'расстояние',
+    )
+
+    class Meta:
+        verbose_name = 'расстояние'
+        verbose_name_plural = 'расстояния'
+        ordering = ['interval']
+
+    def __str__(self):
+        return f'{self.restaurant} - {self.interval}km'
+
+
+def fetch_coordinates(apikey=settings.APIKEY, address=None):
+    base_url = "https://geocode-maps.yandex.ru/1.x"
+    response = requests.get(base_url, params={
+        "geocode": address,
+        "apikey": apikey,
+        "format": "json",
+    })
+    response.raise_for_status()
+    found_places = response.json()['response']['GeoObjectCollection']['featureMember']
+
+    if not found_places:
+        return None
+
+    most_relevant = found_places[0]
+    lon, lat = most_relevant['GeoObject']['Point']['pos'].split(" ")
+    return lat, lon
+
+
 @receiver(post_save, sender=Order)
 def change_status(sender, instance, **kwargs):
-    print(kwargs)
     if kwargs['update_fields']:
-        instance.status = 1
-        instance.save()
-    if instance.restaurant and (kwargs['update_fields'] == frozenset({'restaurant'})):
-        instance.status = 2
-        instance.save()
+        for item in kwargs['update_fields']:
+            if instance.restaurant and (item == 'restaurant'):
+                instance.status = 2
+                instance.save()
+            elif item == 'address':
+                restaurants = Restaurant.objects.all()
+                for restaurant in restaurants:
+                    try:
+                        order_coordinates = fetch_coordinates(address=instance.address)
+                        restaurant_coordinates = fetch_coordinates(address=restaurant.address)
+                        interval = round(distance.distance(order_coordinates, restaurant_coordinates).km, 2)
+                    except requests.exceptions:
+                        interval = 'расстояние неизвестно'
+                    Distance.objects.update_or_create(
+                        order=instance,
+                        restaurant=restaurant,
+                        # interval=interval,
+                        defaults={'interval': interval}
+                    )
+                if instance.status != 2:
+                    instance.status = 1
+                instance.save()
+            else:
+                if instance.status != 2:
+                    instance.status = 1
+                    instance.save()

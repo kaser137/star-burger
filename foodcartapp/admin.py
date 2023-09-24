@@ -6,7 +6,7 @@ from django.utils.http import url_has_allowed_host_and_scheme
 
 from star_burger import settings
 from star_burger.functions import available_list
-from .models import Product
+from .models import Product, Distance
 from .models import ProductCategory
 from .models import Restaurant
 from .models import RestaurantMenuItem, Order, ProductInOrder
@@ -158,3 +158,12 @@ class OrderAdmin(admin.ModelAdmin):
             obj.save(update_fields=form.changed_data)
         else:
             super().save_model(request, obj, form, change)
+
+
+@admin.register(Distance)
+class DistanceAdmin(admin.ModelAdmin):
+    list_display = [
+        'order',
+        'restaurant',
+        'interval'
+    ]

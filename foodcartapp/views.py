@@ -1,3 +1,5 @@
+import requests
+from geopy import distance
 from rest_framework import serializers
 from rest_framework.serializers import ValidationError
 from rest_framework.serializers import ModelSerializer
@@ -5,9 +7,10 @@ from rest_framework.response import Response
 from django.core.exceptions import ObjectDoesNotExist
 from django.templatetags.static import static
 from rest_framework.decorators import api_view
-from django.db import IntegrityError, transaction
+from django.db import transaction
 
-from .models import Product, Order, ProductInOrder
+
+from .models import Product, Order, ProductInOrder, Restaurant, Distance, fetch_coordinates
 
 
 @api_view(['GET'])
@@ -80,6 +83,19 @@ def register_order(request):
         phonenumber=phonenumber,
         address=address,
     )
+    restaurants = Restaurant.objects.all()
+    for restaurant in restaurants:
+        try:
+            order_coordinates = fetch_coordinates(address=order.address)
+            restaurant_coordinates = fetch_coordinates(address=restaurant.address)
+            interval = round(distance.distance(order_coordinates, restaurant_coordinates).km, 2)
+        except requests.exceptions:
+            interval = 'расстояние неизвестно'
+        Distance.objects.create(
+            order=order,
+            restaurant=restaurant,
+            interval=interval
+        )
     for food in products:
         product = Product.objects.get(id=food['product'])
         quantity = food['quantity']

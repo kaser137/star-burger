@@ -1,6 +1,4 @@
-import requests
-from geopy import distance
-from star_burger.functions import available_list, fetch_coordinates
+from star_burger.functions import available_list
 from django import forms
 from django.shortcuts import redirect, render
 from django.utils.http import urlencode
@@ -9,7 +7,6 @@ from django.urls import reverse_lazy
 from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth import authenticate, login
 from django.contrib.auth import views as auth_views
-
 from foodcartapp.models import Product, Restaurant, Order
 
 
@@ -97,20 +94,8 @@ def view_orders(request):
     order_items = Order.objects.exclude(status='4')
     for order in order_items:
         if not order.restaurant:
-            restaurants_id = available_list(order.id)
-            restaurants = Restaurant.objects.filter(id__in=restaurants_id)
-            restaurants_with_distance = []
-            for restaurant in restaurants:
-                try:
-                    client_coordinates = fetch_coordinates(address=order.address)
-                    restaurant_coordinates = fetch_coordinates(address=restaurant.address)
-                    interval = round(distance.distance(client_coordinates, restaurant_coordinates).km, 2)
-                    restaurants_with_distance.append(f'{restaurant} - {interval}km')
-                    restaurants_with_distance.sort(key=sort_by_distance)
-                except requests.exceptions:
-                    interval = 'расстояние неизвестно'
-                    restaurants_with_distance.append(f'{restaurant} - {interval}km')
-            order.restaurants = restaurants_with_distance
+            restaurants = order.distances.filter(restaurant_id__in=available_list(order.id))
+            order.restaurants = restaurants
 
     context = {
         'order_items': order_items,
