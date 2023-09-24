@@ -1,5 +1,3 @@
-import requests
-from geopy import distance
 from rest_framework import serializers
 from rest_framework.serializers import ValidationError
 from rest_framework.serializers import ModelSerializer
@@ -9,8 +7,8 @@ from django.templatetags.static import static
 from rest_framework.decorators import api_view
 from django.db import transaction
 
-
-from .models import Product, Order, ProductInOrder, Restaurant, Distance, fetch_coordinates
+from star_burger.functions import change_or_create_distance
+from .models import Product, Order, ProductInOrder
 
 
 @api_view(['GET'])
@@ -83,19 +81,8 @@ def register_order(request):
         phonenumber=phonenumber,
         address=address,
     )
-    restaurants = Restaurant.objects.all()
-    for restaurant in restaurants:
-        try:
-            order_coordinates = fetch_coordinates(address=order.address)
-            restaurant_coordinates = fetch_coordinates(address=restaurant.address)
-            interval = round(distance.distance(order_coordinates, restaurant_coordinates).km, 2)
-        except requests.exceptions:
-            interval = 'расстояние неизвестно'
-        Distance.objects.create(
-            order=order,
-            restaurant=restaurant,
-            interval=interval
-        )
+    change_or_create_distance(order)
+
     for food in products:
         product = Product.objects.get(id=food['product'])
         quantity = food['quantity']

@@ -29,6 +29,7 @@ INSTALLED_APPS = [
     'debug_toolbar',
     'rest_framework',
     'phonenumber_field',
+    'restaurants_order_distances',
 ]
 
 MIDDLEWARE = [

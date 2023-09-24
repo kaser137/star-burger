@@ -4,9 +4,10 @@ from django.templatetags.static import static
 from django.utils.html import format_html
 from django.utils.http import url_has_allowed_host_and_scheme
 
+from restaurants_order_distances.models import Distance
 from star_burger import settings
 from star_burger.functions import available_list
-from .models import Product, Distance
+from .models import Product
 from .models import ProductCategory
 from .models import Restaurant
 from .models import RestaurantMenuItem, Order, ProductInOrder
@@ -165,5 +166,6 @@ class DistanceAdmin(admin.ModelAdmin):
     list_display = [
         'order',
         'restaurant',
-        'interval'
+        'interval',
+        'date'
     ]
