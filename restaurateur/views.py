@@ -1,4 +1,4 @@
-from star_burger.functions import available_list
+from foodcartapp.functions import available_list
 from django import forms
 from django.shortcuts import redirect, render
 from django.utils.http import urlencode

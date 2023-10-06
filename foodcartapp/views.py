@@ -7,7 +7,7 @@ from django.templatetags.static import static
 from rest_framework.decorators import api_view
 from django.db import transaction
 
-from star_burger.functions import change_or_create_distance
+from foodcartapp.functions import change_or_create_distance
 from .models import Product, Order, ProductInOrder
 
 
