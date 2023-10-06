@@ -1,4 +1,4 @@
-from foodcartapp.functions import available_list
+from foodcartapp.functions import available_list, get_interval, sort_key
 from django import forms
 from django.shortcuts import redirect, render
 from django.utils.http import urlencode
@@ -94,8 +94,12 @@ def view_orders(request):
     order_items = Order.objects.exclude(status='4')
     for order in order_items:
         if not order.restaurant:
-            restaurants = order.distances.filter(restaurant_id__in=available_list(order.id))
-            order.restaurants = restaurants
+            restaurants_with_distance = []
+            restaurants = Restaurant.objects.filter(id__in=available_list(order.id))
+            for restaurant in restaurants:
+                restaurants_with_distance.append(f'{restaurant} - {get_interval(restaurant, order)} km')
+            restaurants_with_distance.sort(key=sort_key)
+            order.restaurants = restaurants_with_distance
 
     context = {
         'order_items': order_items,
@@ -103,7 +107,3 @@ def view_orders(request):
     }
 
     return render(request, template_name='order_items.html', context=context)
-
-
-def sort_by_distance(input_str):
-    return input_str.split(' - ')[-1]

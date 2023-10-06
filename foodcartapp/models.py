@@ -24,6 +24,16 @@ class Restaurant(models.Model):
         max_length=50,
         blank=True,
     )
+    lat = models.FloatField(
+        'Координаты ресторана: широта (latitude)',
+        null=True,
+        blank=True
+    )
+    lon = models.FloatField(
+        'Координаты ресторана: долгота (longitude)',
+        null=True,
+        blank=True
+    )
 
     class Meta:
         verbose_name = 'ресторан'
@@ -206,6 +216,16 @@ class Order(models.Model):
     )
     delivered_at = models.DateTimeField(
         'время доставки',
+        null=True,
+        blank=True
+    )
+    lat = models.FloatField(
+        'Координаты доставки: широта (latitude)',
+        null=True,
+        blank=True
+    )
+    lon = models.FloatField(
+        'Координаты доставки: долгота (longitude)',
         null=True,
         blank=True
     )

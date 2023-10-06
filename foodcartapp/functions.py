@@ -1,11 +1,8 @@
-import datetime
 import requests
 from geopy import distance
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-
 from foodcartapp.models import Order, RestaurantMenuItem, Restaurant
-from restaurants_order_distances.models import Distance
 from star_burger import settings
 
 
@@ -46,38 +43,49 @@ def available_list(order_id):
     return list(restaurants)
 
 
-def change_or_create_distance(order):
-    restaurants = Restaurant.objects.all()
-    for restaurant in restaurants:
-        try:
-            order_coordinates = fetch_coordinates(address=order.address)
-            if order_coordinates:
-                restaurant_coordinates = fetch_coordinates(address=restaurant.address)
-                interval = round(distance.distance(order_coordinates, restaurant_coordinates).km, 2)
-            else:
-                interval = None
-        except requests.exceptions:
-            interval = None
-        Distance.objects.update_or_create(
-            order=order,
-            restaurant=restaurant,
-            defaults={'interval': interval, 'date': datetime.date.today()}
+def sort_key(string):
+    return string.split(' ')[-2]
 
-        )
+
+def get_interval(restaurant, order):
+    if restaurant.lat and restaurant.lon and order.lat and order.lon:
+        return round(distance.distance((restaurant.lat, restaurant.lon), (order.lat, order.lon)).km, 2)
+    else:
+        return None
+
+
+def get_coordinates(instance):
+    coordinates = fetch_coordinates(address=instance.address)
+    if coordinates:
+        instance.lat, instance.lon = coordinates
+    else:
+        instance.lat, instance.lon = None, None
+    instance.save()
+
+
+@receiver(post_save, sender=Restaurant)
+def change_restaurant_address(sender, instance, created, **kwargs):
+    if created:
+        get_coordinates(instance)
+    if kwargs['update_fields']:
+        address = kwargs['update_fields'].get('address')
+        if address:
+            get_coordinates(instance)
 
 
 @receiver(post_save, sender=Order)
-def change_status(sender, instance, **kwargs):
+def change_status(sender, instance, created, **kwargs):
+    if created:
+        get_coordinates(instance)
     if kwargs['update_fields']:
         for item in kwargs['update_fields']:
             if instance.restaurant and (item == 'restaurant'):
                 instance.status = 2
                 instance.save()
             elif item == 'address':
-                change_or_create_distance(instance)
                 if instance.status != 2:
                     instance.status = 1
-                instance.save()
+                get_coordinates(instance)
             else:
                 if instance.status != 2:
                     instance.status = 1

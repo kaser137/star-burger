@@ -1,13 +1,7 @@
-from rest_framework.serializers import ValidationError
-from rest_framework.serializers import ModelSerializer
 from rest_framework.response import Response
-from django.core.exceptions import ObjectDoesNotExist
 from django.templatetags.static import static
 from rest_framework.decorators import api_view
-from django.db import transaction
-
-from foodcartapp.functions import change_or_create_distance
-from .models import Product, Order, ProductInOrder
+from .models import Product
 from .serializers import OrderSerializer
 
 

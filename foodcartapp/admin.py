@@ -3,8 +3,6 @@ from django.shortcuts import reverse, redirect
 from django.templatetags.static import static
 from django.utils.html import format_html
 from django.utils.http import url_has_allowed_host_and_scheme
-
-from restaurants_order_distances.models import Distance
 from star_burger import settings
 from foodcartapp.functions import available_list
 from .models import Product
@@ -30,9 +28,19 @@ class RestaurantAdmin(admin.ModelAdmin):
         'address',
         'contact_phone',
     ]
+    readonly_fields = [
+        'lon',
+        'lat'
+    ]
     inlines = [
         RestaurantMenuItemInline
     ]
+
+    def save_model(self, request, obj, form, change):
+        if change:
+            obj.save(update_fields=form.changed_data)
+        else:
+            super().save_model(request, obj, form, change)
 
 
 @admin.register(Product)
@@ -135,7 +143,9 @@ class OrderAdmin(admin.ModelAdmin):
     ]
 
     readonly_fields = [
-        'amount'
+        'amount',
+        'lon',
+        'lat'
     ]
     inlines = [
         ProductInOrderInline,
@@ -159,13 +169,3 @@ class OrderAdmin(admin.ModelAdmin):
             obj.save(update_fields=form.changed_data)
         else:
             super().save_model(request, obj, form, change)
-
-
-@admin.register(Distance)
-class DistanceAdmin(admin.ModelAdmin):
-    list_display = [
-        'order',
-        'restaurant',
-        'interval',
-        'date'
-    ]

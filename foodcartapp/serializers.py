@@ -1,9 +1,6 @@
-from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
 from rest_framework.serializers import ModelSerializer
-from rest_framework.serializers import ValidationError
-from foodcartapp.functions import change_or_create_distance
-from foodcartapp.models import Product, ProductInOrder, Order
+from foodcartapp.models import ProductInOrder, Order
 
 
 class ProductInOrderSerializer(ModelSerializer):
@@ -23,7 +20,7 @@ class OrderSerializer(ModelSerializer):
             phonenumber=validated_data['phonenumber'],
             address=validated_data['address'],
         )
-        change_or_create_distance(order)
+
         products_in_order = [
             ProductInOrder(
                 order=order,
