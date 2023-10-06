@@ -59,53 +59,16 @@ def product_list_api(request):
     return Response(dumped_products)
 
 
-@transaction.atomic
+
 @api_view(['POST'])
 def register_order(request):
-    data = request.data
     serializer = OrderSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
-    products = data['products']
-    firstname = data['firstname']
-    lastname = data['lastname']
-    phonenumber = data['phonenumber']
-    address = data['address']
-    for food in products:
-        serializer = ProductSerializer(data=food)
-        serializer.is_valid(raise_exception=True)
-        serializer = QuantitySerializer(data=food)
-        serializer.is_valid(raise_exception=True)
-    order = Order.objects.create(
-        firstname=firstname,
-        lastname=lastname,
-        phonenumber=phonenumber,
-        address=address,
-    )
-    change_or_create_distance(order)
-
-    for food in products:
-        product = Product.objects.get(id=food['product'])
-        quantity = food['quantity']
-        price = product.price
-        ProductInOrder.objects.create(
-            order=order,
-            product=product,
-            quantity=quantity,
-            price=price,
-        )
-    serializer = OrderSerializer(order)
+    serializer.save()
     return Response(serializer.data)
 
 
-class QuantitySerializer(ModelSerializer):
-    class Meta:
-        model = ProductInOrder
-        fields = ['quantity']
-
-
 class ProductSerializer(ModelSerializer):
-    product = serializers.IntegerField(source='id')
-
     @staticmethod
     def validate_product(value):
         try:
@@ -119,8 +82,35 @@ class ProductSerializer(ModelSerializer):
         fields = ['product']
 
 
+class ProductInOrderSerializer(ModelSerializer):
+    class Meta:
+        model = ProductInOrder
+        fields = ['product', 'quantity']
+
+
 class OrderSerializer(ModelSerializer):
-    products = ProductSerializer(many=True, allow_empty=False, write_only=True)
+    products = ProductInOrderSerializer(many=True, allow_empty=False, write_only=True)
+
+    @transaction.atomic
+    def create(self, validated_data):
+        order = Order.objects.create(
+            firstname=validated_data['firstname'],
+            lastname=validated_data['lastname'],
+            phonenumber=validated_data['phonenumber'],
+            address=validated_data['address'],
+        )
+        change_or_create_distance(order)
+        products_in_order = [
+            ProductInOrder(
+                order=order,
+                product=food['product'],
+                price=food['product'].price,
+                quantity=food['quantity']
+            )
+            for food in validated_data['products']
+        ]
+        ProductInOrder.objects.bulk_create(products_in_order)
+        return order
 
     class Meta:
         model = Order
