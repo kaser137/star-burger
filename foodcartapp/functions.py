@@ -51,8 +51,11 @@ def change_or_create_distance(order):
     for restaurant in restaurants:
         try:
             order_coordinates = fetch_coordinates(address=order.address)
-            restaurant_coordinates = fetch_coordinates(address=restaurant.address)
-            interval = round(distance.distance(order_coordinates, restaurant_coordinates).km, 2)
+            if order_coordinates:
+                restaurant_coordinates = fetch_coordinates(address=restaurant.address)
+                interval = round(distance.distance(order_coordinates, restaurant_coordinates).km, 2)
+            else:
+                interval = None
         except requests.exceptions:
             interval = None
         Distance.objects.update_or_create(
