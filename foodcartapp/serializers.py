@@ -6,20 +6,6 @@ from foodcartapp.functions import change_or_create_distance
 from foodcartapp.models import Product, ProductInOrder, Order
 
 
-class ProductSerializer(ModelSerializer):
-    @staticmethod
-    def validate_product(value):
-        try:
-            Product.objects.get(id=value)
-        except ObjectDoesNotExist:
-            raise ValidationError(f'Недопустимый первичный ключ: {value}')
-        return value
-
-    class Meta:
-        model = Product
-        fields = ['product']
-
-
 class ProductInOrderSerializer(ModelSerializer):
     class Meta:
         model = ProductInOrder
