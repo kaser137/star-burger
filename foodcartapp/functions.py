@@ -55,10 +55,13 @@ def get_interval(restaurant, order):
 
 
 def get_coordinates(instance):
-    coordinates = fetch_coordinates(address=instance.address)
-    if coordinates:
-        instance.lat, instance.lon = coordinates
-    else:
+    try:
+        coordinates = fetch_coordinates(address=instance.address)
+        if coordinates:
+            instance.lat, instance.lon = coordinates
+        else:
+            instance.lat, instance.lon = None, None
+    except requests.RequestException:
         instance.lat, instance.lon = None, None
     instance.save()
 
