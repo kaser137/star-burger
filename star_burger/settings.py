@@ -94,7 +94,7 @@ MEDIA_URL = '/media/'
 
 DATABASES = {
     'default': dj_database_url.config(
-        default=env('DB_URL')
+        default=env('DB_URL1')
     )
 }
 
