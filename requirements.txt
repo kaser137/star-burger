@@ -9,7 +9,7 @@ dj-database-url==2.1.0
 django-phonenumber-field==7.1.0
 rollbar==0.16.3
 geopy==2.4.0
-requests== 2.31.0
+psycopg2-binary~=2.9.9
 gunicorn==21.2.0
 
 
