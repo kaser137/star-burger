@@ -91,7 +91,6 @@ def view_restaurants(request):
 
 @user_passes_test(is_manager, login_url='restaurateur:login')
 def view_orders(request):
-    f=2+'sasha'
     order_items = Order.objects.exclude(status='4')
     for order in order_items:
         if not order.restaurant:
