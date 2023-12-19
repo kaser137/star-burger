@@ -155,6 +155,8 @@ cd /opt/star-burger
 ./venv/bin/python3 manahe.py createsuperuser
 ```
 Адрес рабочего сайта для примера: https://burger.buzhyn.com
+
+
 Код написан в учебных целях — это урок в курсе по Python и веб-разработке на сайте [Devman](https://dvmn.org). За основу был взят код проекта [FoodCart](https://github.com/Saibharath79/FoodCart).
 
 Где используется репозиторий:
