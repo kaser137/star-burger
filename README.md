@@ -144,16 +144,17 @@ Parcel будет следить за файлами в каталоге `bundle
 
 ## Как запустить prod-версию сайта
 
-Собрать фронтенд:
-
+Зайти на сервер через терминал.
+Запустить скрипт для обновления кода и перезапуска сервисов:
 ```sh
-./node_modules/.bin/parcel build bundles-src/index.js --dist-dir bundles --public-url="./"
+source /opt/renew.sh
 ```
-
-Настроить бэкенд: создать файл `.env` в каталоге `star_burger/` со следующими настройками:
-
-## Цели проекта
-
+Если это был первый запуск, то создайте пользователя с правами администратора:
+```sh
+cd /opt/star-burger
+./venv/bin/python3 manahe.py createsuperuser
+```
+Адрес рабочего сайта для примера: https://burger.buzhyn.com
 Код написан в учебных целях — это урок в курсе по Python и веб-разработке на сайте [Devman](https://dvmn.org). За основу был взят код проекта [FoodCart](https://github.com/Saibharath79/FoodCart).
 
 Где используется репозиторий:
