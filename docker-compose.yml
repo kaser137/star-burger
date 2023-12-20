@@ -11,8 +11,5 @@ services:
       POSTGRES_DB: sb
     volumes:
       - ./pgdata:/var/lib/postgresql/data
-      # - ./database.sql:/docker-entrypoint-initdb.d/database.sql
-      # - ./new_database.sql:/docker-entrypoint-initdb.d/new_database.sql
-    # network_mode: 'host'
     ports:
       - 5433:5432
