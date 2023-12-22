@@ -7,7 +7,7 @@ cd /opt/star-burger
 echo change directory done
 
 echo start git commit
-git commit -a
+git commit -am "server commit"
 echo git commit done
 
 echo start git pull
