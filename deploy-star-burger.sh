@@ -6,14 +6,6 @@ echo start change directory
 cd /opt/star-burger
 echo change directory done
 
-echo start git commit
-git commit -am "server commit"
-echo git commit done
-
-echo start git push
-git push
-echo git push done
-
 echo start git pull
 git pull
 echo git pull done
