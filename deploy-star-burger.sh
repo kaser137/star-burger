@@ -6,7 +6,7 @@ echo start change directory
 cd /opt/star-burger
 echo change directory done
 
-echo start git pull
+echo start git pull test
 git pull
 echo git pull done
 
