@@ -15,7 +15,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 SECRET_KEY = env('SECRET_KEY')
 DEBUG = env.bool('DEBUG', False)
 APIKEY = env('YANDEX_KEY')
-ROLLBAR_TOKEN = env('ROLLBAR_TOKEN')
+ROLLBAR_TOKEN = env('ROLLBAR_TOKEN', None)
 ROLLBAR_ENVIRONMENT_NAME = env('ROLLBAR_ENVIRONMENT_NAME')
 ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', ['127.0.0.1', 'localhost'])
 
@@ -94,7 +94,7 @@ MEDIA_URL = '/media/'
 
 DATABASES = {
     'default': dj_database_url.config(
-        default=env('DB_URL5')
+        default=env('DB_URL2')
     )
 }
 
