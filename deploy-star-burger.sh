@@ -37,7 +37,7 @@ echo reload nginx done
 source .env
 
 COMMENT="$(date) deploy"
-COMMIT=$(git rev-parse --short HEAD)
+COMMIT=$(git rev-parse HEAD)
 
 curl -H "X-Rollbar-Access-Token: $ROLLBAR_TOKEN" -H "Content-Type: application/json" -X POST 'https://api.rollbar.com/api/1/deploy' -d '{"environment": "'"$ROLLBAR_ENVIRONMENT_NAME"'", "revision": "'"$COMMIT"'", "rollbar_name": "buzhyn", "local_username": "'"$USER"'", "comment": "'"$COMMENT"'", "status": "succeeded"}'
 
