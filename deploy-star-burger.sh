@@ -6,7 +6,7 @@ echo start change directory
 cd /opt/star-burger
 echo change directory done
 
-echo start git commit
+echo start git commit 1
 git commit -am "server commit"
 echo git commit done
 
