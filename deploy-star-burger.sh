@@ -11,7 +11,7 @@ git commit -am "server commit"
 echo git commit done
 
 echo start git pull
-git pull --no-edit
+git pull --ff
 echo git pull done
 
 echo start renew requirements
