@@ -15,12 +15,8 @@ echo start renew requirements
 echo renew requirements done
 
 echo start mount  packages of NodeJS
-npm ci --include=dev 
+npm ci --include=dev
 echo mount  packages of NodeJS done
-
-echo start parcel
-./node_modules/.bin/parcel watch bundles-src/index.js --dist-dir bundles --public-url="./"
-echo parcel has been executed
 
 echo start collectstatic
 ./venv/bin/python3 manage.py collectstatic --noinput
@@ -40,9 +36,9 @@ echo reload nginx done
 
 source .env
 
-COMMENT="$(date) deploy" 
+COMMENT="$(date) deploy"
 COMMIT=$(git rev-parse --short HEAD)
- 
+
 curl -H "X-Rollbar-Access-Token: $ROLLBAR_TOKEN" -H "Content-Type: application/json" -X POST 'https://api.rollbar.com/api/1/deploy' -d '{"environment": "'"$ENV_NAME"'", "revision": "'"$COMMIT"'", "rollbar_name": "buzhyn", "local_username": "'"$USER"'", "comment": "'"$COMMENT"'", "status": "succeeded"}'
 
 echo code has been successfully renewed
