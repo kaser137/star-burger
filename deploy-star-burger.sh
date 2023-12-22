@@ -7,7 +7,7 @@ cd /opt/star-burger
 echo change directory done
 
 echo start git pull
-git pull
+git pull --noinput
 echo git pull done
 
 echo start renew requirements
@@ -39,6 +39,6 @@ source .env
 COMMENT="$(date) deploy"
 COMMIT=$(git rev-parse --short HEAD)
 
-curl -H "X-Rollbar-Access-Token: $ROLLBAR_TOKEN" -H "Content-Type: application/json" -X POST 'https://api.rollbar.com/api/1/deploy' -d '{"environment": "'"$ENV_NAME"'", "revision": "'"$COMMIT"'", "rollbar_name": "buzhyn", "local_username": "'"$USER"'", "comment": "'"$COMMENT"'", "status": "succeeded"}'
+curl -H "X-Rollbar-Access-Token: $ROLLBAR_TOKEN" -H "Content-Type: application/json" -X POST 'https://api.rollbar.com/api/1/deploy' -d '{"environment": "'"$ROLLBAR_ENVIRONMENT_NAME"'", "revision": "'"$COMMIT"'", "rollbar_name": "buzhyn", "local_username": "'"$USER"'", "comment": "'"$COMMENT"'", "status": "succeeded"}'
 
 echo code has been successfully renewed

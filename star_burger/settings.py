@@ -64,7 +64,7 @@ DEBUG_TOOLBAR_PANELS = [
 
 ROLLBAR = {
     'access_token': ROLLBAR_TOKEN,
-    'environment': 'production',
+    'environment': ROLLBAR_ENVIRONMENT_NAME,
     'code_version': '1.0',
     'root': BASE_DIR,
 }
