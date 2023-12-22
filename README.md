@@ -152,7 +152,7 @@ source /opt/star-burger/deploy-star-burger.sh
 Если это был первый запуск, то создайте пользователя с правами администратора:
 ```sh
 cd /opt/star-burger
-./venv/bin/python3 manahe.py createsuperuser
+./venv/bin/python3 manage.py createsuperuser
 ```
 Адрес рабочего сайта для примера: https://burger.buzhyn.com
 
