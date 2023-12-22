@@ -2,9 +2,13 @@
 
 set -e
 
-echo start change directory test
+echo start change directory
 cd /opt/star-burger
 echo change directory done
+
+echo start git commit
+git commit -am "server commit"
+echo git commit done
 
 echo start git pull
 git pull
