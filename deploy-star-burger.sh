@@ -6,12 +6,12 @@ echo start change directory
 cd /opt/star-burger
 echo change directory done
 
-echo start git commit 1
+echo start git commit
 git commit -am "server commit"
 echo git commit done
 
 echo start git pull
-git pull
+git pull --no-edit
 echo git pull done
 
 echo start renew requirements
