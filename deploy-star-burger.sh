@@ -2,7 +2,7 @@
 
 set -e
 
-echo start change directory
+echo start change directory test
 cd /opt/star-burger
 echo change directory done
 
