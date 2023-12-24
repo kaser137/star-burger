@@ -16,7 +16,11 @@ echo renew requirements done
 
 echo start mount  packages of NodeJS
 npm ci --include=dev
-echo mount  packages of NodeJS done
+echo mount  packages of NodeJS done\
+
+echo start parcel
+./node_modules/.bin/parcel build bundles-src/index.js --dist-dir bundles --public-url="./"
+echo parcel done
 
 echo start collectstatic
 ./venv/bin/python3 manage.py collectstatic --noinput
